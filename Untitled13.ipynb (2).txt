@@ -1,0 +1,292 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "provenance": [],
+      "generative_ai_disabled": true
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "zU7eppPWzuUI",
+        "outputId": "ff6ce55a-7bf6-41d5-b8cc-8101af0bbcc0"
+      },
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Epoch 1/5\n",
+            "\u001b[1m516/516\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m2s\u001b[0m 2ms/step - loss: 0.8653 - mae: 0.6348\n",
+            "Epoch 2/5\n",
+            "\u001b[1m516/516\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m1s\u001b[0m 2ms/step - loss: 0.4054 - mae: 0.4516\n",
+            "Epoch 3/5\n",
+            "\u001b[1m516/516\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m1s\u001b[0m 2ms/step - loss: 0.3680 - mae: 0.4318\n",
+            "Epoch 4/5\n",
+            "\u001b[1m516/516\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m1s\u001b[0m 2ms/step - loss: 0.3499 - mae: 0.4184\n",
+            "Epoch 5/5\n",
+            "\u001b[1m516/516\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m1s\u001b[0m 2ms/step - loss: 0.3363 - mae: 0.4083\n",
+            "\u001b[1m129/129\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 2ms/step - loss: 0.3406 - mae: 0.4088\n",
+            "Test MAE: 0.40880897641181946\n",
+            "\u001b[1m1/1\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 67ms/step\n",
+            "Predicted price: [[0.626085]]\n"
+          ]
+        }
+      ],
+      "source": [
+        "import tensorflow as tf\n",
+        "from sklearn.datasets import fetch_california_housing\n",
+        "from sklearn.model_selection import train_test_split\n",
+        "from sklearn.preprocessing import StandardScaler\n",
+        "\n",
+        "# Load dataset\n",
+        "X, y = fetch_california_housing(return_X_y=True)\n",
+        "\n",
+        "# Preprocessing\n",
+        "X = StandardScaler().fit_transform(X)\n",
+        "X_train, X_test, y_train, y_test = train_test_split(\n",
+        "    X, y, test_size=0.2, random_state=42\n",
+        ")\n",
+        "\n",
+        "# Build model\n",
+        "model = tf.keras.Sequential([\n",
+        "    tf.keras.layers.Input(shape=(8,)),\n",
+        "    tf.keras.layers.Dense(64, activation='relu'),\n",
+        "    tf.keras.layers.Dense(32, activation='relu'),\n",
+        "    tf.keras.layers.Dense(1)\n",
+        "])\n",
+        "\n",
+        "# Compile\n",
+        "model.compile(optimizer='adam', loss='mse', metrics=['mae'])\n",
+        "\n",
+        "# Train\n",
+        "model.fit(X_train, y_train, epochs=5, batch_size=32)\n",
+        "\n",
+        "# Evaluate\n",
+        "loss, mae = model.evaluate(X_test, y_test)\n",
+        "print(\"Test MAE:\", mae)\n",
+        "\n",
+        "# Predict\n",
+        "print(\"Predicted price:\", model.predict(X_test[:1]))"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import tensorflow as tf\n",
+        "import numpy as np\n",
+        "from tensorflow.keras.applications.vgg16 import VGG16, preprocess_input, decode_predictions\n",
+        "from tensorflow.keras.utils import load_img, img_to_array\n",
+        "\n",
+        "# Load pretrained VGG16\n",
+        "model = VGG16(weights='imagenet')\n",
+        "\n",
+        "# Load image (keep dog.jpg in notebook folder)\n",
+        "img = load_img('Dog.jpg', target_size=(224, 224))\n",
+        "x = img_to_array(img)\n",
+        "x = np.expand_dims(x, axis=0)\n",
+        "x = preprocess_input(x)\n",
+        "\n",
+        "# Predict\n",
+        "pred = model.predict(x)\n",
+        "print(decode_predictions(pred, top=3)[0])"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "8u8PlWIK21EN",
+        "outputId": "dd3a5c2c-9836-4cff-e10c-79945b0fc346"
+      },
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "\u001b[1m1/1\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m1s\u001b[0m 877ms/step\n",
+            "Downloading data from https://storage.googleapis.com/download.tensorflow.org/data/imagenet_class_index.json\n",
+            "\u001b[1m35363/35363\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m0s\u001b[0m 0us/step\n",
+            "[('n02106662', 'German_shepherd', np.float32(0.99605584)), ('n02105162', 'malinois', np.float32(0.0036464953)), ('n02096051', 'Airedale', np.float32(0.00015579232))]\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import tensorflow as tf\n",
+        "import numpy as np\n",
+        "\n",
+        "# Text\n",
+        "text = \"hello world hello world\"\n",
+        "\n",
+        "# Convert characters into numbers\n",
+        "chars = sorted(set(text))\n",
+        "data = np.array([chars.index(c) for c in text])\n",
+        "\n",
+        "# Prepare data\n",
+        "X = np.array([data[i:i+3] for i in range(len(data)-3)])\n",
+        "y = data[3:]\n",
+        "\n",
+        "# Build model\n",
+        "model = tf.keras.Sequential([\n",
+        "    tf.keras.layers.Embedding(len(chars), 8),\n",
+        "        tf.keras.layers.LSTM(16),\n",
+        "            tf.keras.layers.Dense(len(chars), activation='softmax')\n",
+        "            ])\n",
+        "\n",
+        "            # Train\n",
+        "model.compile(optimizer='adam', loss='sparse_categorical_crossentropy')\n",
+        "model.fit(X, y, epochs=10, verbose=0)\n",
+        "\n",
+        "            # Predict\n",
+        "p = model.predict(X[:1], verbose=0)\n",
+        "print(\"Next character:\", chars[np.argmax(p[0])])"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "TnV8ZLbnbWlg",
+        "outputId": "e8cbf28c-931c-43cf-d95b-02184c22c306"
+      },
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Next character: l\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import tensorflow as tf\n",
+        "import numpy as np\n",
+        "\n",
+        "# Sample data\n",
+        "X = np.array([[1, 2, 3], [2, 3, 4], [3, 4, 5]])\n",
+        "Y = np.array([[2, 3], [3, 4], [4, 5]])\n",
+        "\n",
+        "# Encoder\n",
+        "encoder = tf.keras.Input(shape=(3,))\n",
+        "e = tf.keras.layers.Embedding(10, 8)(encoder)\n",
+        "_, h, c = tf.keras.layers.LSTM(16, return_state=True)(e)\n",
+        "\n",
+        "# Decoder\n",
+        "decoder = tf.keras.Input(shape=(2,))\n",
+        "d = tf.keras.layers.Embedding(10, 8)(decoder)\n",
+        "d = tf.keras.layers.LSTM(16, return_sequences=True)(\n",
+        "    d, initial_state=[h, c]\n",
+        "    )\n",
+        "output = tf.keras.layers.Dense(10, activation='softmax')(d)\n",
+        "\n",
+        "    # Build and train\n",
+        "model = tf.keras.Model([encoder, decoder], output)\n",
+        "model.compile(optimizer='adam', loss='sparse_categorical_crossentropy')\n",
+        "\n",
+        "model.fit([X, Y], Y[..., None], epochs=5, verbose=0)\n",
+        "\n",
+        "print(\"Encoder-Decoder model trained successfully!\")"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "zxT441zscD1Q",
+        "outputId": "feea0fcd-23b0-4109-8ff6-625aa5ce4418"
+      },
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Encoder-Decoder model trained successfully!\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import tensorflow as tf\n",
+        "import numpy as np\n",
+        "\n",
+        "# Dataset\n",
+        "texts = [\"Win free prize\", \"Hello how are you\",\n",
+        "         \"Claim your money\", \"Meet me today\"]\n",
+        "\n",
+        "labels = np.array([1, 0, 1, 0])\n",
+        "\n",
+        "         # Convert text into numbers\n",
+        "vectorizer = tf.keras.layers.TextVectorization(\n",
+        "             max_tokens=100, output_sequence_length=5\n",
+        "             )\n",
+        "vectorizer.adapt(texts)\n",
+        "X = vectorizer(np.array(texts))\n",
+        "\n",
+        "             # Transformer model\n",
+        "inputs = tf.keras.Input(shape=(5,))\n",
+        "x = tf.keras.layers.Embedding(100, 16)(inputs)\n",
+        "x = tf.keras.layers.MultiHeadAttention(\n",
+        "                 num_heads=2, key_dim=16\n",
+        "                 )(x, x)\n",
+        "\n",
+        "x = tf.keras.layers.GlobalAveragePooling1D()(x)\n",
+        "outputs = tf.keras.layers.Dense(1, activation='sigmoid')(x)\n",
+        "\n",
+        "model = tf.keras.Model(inputs, outputs)\n",
+        "\n",
+        "                 # Compile\n",
+        "model.compile(optimizer='adam',\n",
+        "                               loss='binary_crossentropy',\n",
+        "                                             metrics=['accuracy'])\n",
+        "\n",
+        "                                             # Train\n",
+        "model.fit(X, labels, epochs=5, verbose=0)\n",
+        "\n",
+        "                                             # Predict\n",
+        "p = model.predict(vectorizer([\"Win a free gift\"]), verbose=0)\n",
+        "\n",
+        "print(\"Prediction:\", \"SPAM\" if p[0][0] > 0.5 else \"HAM\")"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 0
+        },
+        "id": "tjPQBySkOigq",
+        "outputId": "ec5c7e03-70b4-446c-ab47-bd78f516b843"
+      },
+      "execution_count": 3,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Prediction: SPAM\n"
+          ]
+        }
+      ]
+    }
+  ]
+}
